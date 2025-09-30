@@ -1,0 +1,454 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MaidenHQ — Focus Timer with Focus Fox</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --page-beige: #FAF7EA;
+  --accent-blue: #005DB8;
+  --pink-shadow: #f762d0;
+  --white-shadow: #fff5f9;
+  --frame-size: 64px; /* change to 32px if you exported 32x32 sprites */
+}
+
+/* base */
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--page-beige);color:var(--accent-blue)}
+body{font-family:'Poppins',sans-serif;display:flex;align-items:center;justify-content:center;padding:36px}
+
+/* card */
+.card{
+  width:820px; max-width:94vw;
+  border-radius:12px;
+  padding:28px;
+  border:3px solid var(--accent-blue);
+  box-shadow: 10px 10px 0 var(--pink-shadow);
+  display:flex;flex-direction:column;align-items:center;
+  background:transparent;
+}
+
+/* header */
+.h-title{font-family:'Instrument Serif',serif;font-size:64px;margin:0;color:var(--accent-blue);text-align:center}
+.h-sub{font-family:'Instrument Serif',serif;font-size:12px;color:var(--accent-blue);margin-top:6px;text-align:center}
+
+/* layout */
+.stack{display:flex;flex-direction:column;align-items:center;gap:18px;margin-top:18px;width:100%}
+
+/* fox */
+.fox-sprite {
+  width: var(--frame-size);
+  height: var(--frame-size);
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-size: contain;
+  margin: 0 auto;
+}
+
+/* fox line */
+.fox-line { margin-top:10px; font-family:'Instrument Serif',serif; font-size:14px; color:var(--accent-blue); text-align:center; transition:opacity .32s ease; opacity:1; }
+
+/* timer text */
+.timer-number{ font-family:'Instrument Serif',serif; font-size:44px; color:var(--accent-blue); font-weight:700; margin-top:6px; text-align:center}
+.small-meta{ font-family:'Poppins',sans-serif; font-size:13px; color:rgba(0,0,0,0.45); margin-top:4px; text-align:center }
+
+/* main action */
+.main-action{
+  width:360px; max-width:92%;
+  height:56px;border-radius:10px;border:none;background:var(--accent-blue);
+  color:#fff;display:flex;align-items:center;justify-content:center;gap:10px;
+  font-weight:700;font-size:18px;cursor:pointer;
+  box-shadow:6px 6px 0 var(--pink-shadow), -3px -3px 0 var(--white-shadow);
+  transition:box-shadow .12s ease, transform .12s ease;font-family:'Poppins',sans-serif;
+}
+.main-action svg{ width:16px;height:16px; flex-shrink:0; transform:none; }
+.main-action:hover{ box-shadow:3px 3px 0 var(--pink-shadow), -1px -1px 0 var(--white-shadow); transform:translateY(-2px) }
+
+/* controls */
+.controls-row{ display:flex; gap:14px; align-items:center; justify-content:center; margin-top:8px }
+.icon-circle{ width:48px;height:48px;border-radius:50%; background:var(--page-beige); border:2px solid var(--accent-blue); display:inline-flex;align-items:center;justify-content:center; box-shadow:2px 2px 0 var(--pink-shadow), -3px -3px 0 var(--white-shadow); cursor:pointer; transition: box-shadow .12s ease, transform .12s ease; }
+.icon-svg{ width:18px;height:18px; fill:var(--accent-blue) }
+
+/* reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .fox-sprite { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+  <div class="card" role="application" aria-label="MaidenHQ Focus Timer">
+    <div style="text-align:center">
+      <div class="h-title">Focus Timer</div>
+      <div class="h-sub">Pomodoro with Focus Fox</div>
+    </div>
+
+    <main class="stack" aria-live="polite">
+      <!-- FOX -->
+      <div id="fox" class="fox-sprite" aria-hidden="true"></div>
+      <div id="foxLine" class="fox-line">Fox is waiting…</div>
+
+      <!-- TIME -->
+      <div class="timer-number" id="timeDisplay">25:00</div>
+      <div class="small-meta">
+        <div id="sessionLabel">Session 0</div>
+        <div class="percent" id="percentLabel">0%</div>
+      </div>
+
+      <!-- ACTION -->
+      <button id="mainAction" class="main-action" aria-pressed="false" aria-label="Start/Pause">
+        <svg id="mainIcon" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
+        <span id="mainLabel">Start</span>
+      </button>
+
+      <!-- controls -->
+      <div class="controls-row">
+        <button id="skipBtn" class="icon-circle" title="Skip"><svg class="icon-svg" viewBox="0 0 24 24"><path d="M4 18v-12l8 6-8 6zm9 0V6h2v12h-2z"/></svg></button>
+        <button id="resetBtn" class="icon-circle" title="Reset"><svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 6V3L8 7l4 4V8c2.76 0 5 2.24 5 5 0 .65-.13 1.27-.36 1.84l1.46 1.46C19.82 15.03 20 14.03 20 13c0-4.42-3.58-8-8-8z"/></svg></button>
+      </div>
+
+      <div class="footer">Designed by MaidenHQ — calm focus, small wins</div>
+    </main>
+  </div>
+
+<script>
+/*
+  Single-file integrated timer + Focus Fox
+  -------------------------
+  EXPECTED SPRITE FILES (place in "sprites/" next to this file):
+  Neutral:
+    sprites/neutral_base.png
+    sprites/neutral_blink.png
+    sprites/neutral_ear.png
+    sprites/neutral_tail.png
+  Alert (work):
+    sprites/alert_base.png
+    sprites/alert_blink.png
+    sprites/alert_ear.png
+    sprites/alert_tail1.png
+    sprites/alert_tail2.png
+  Stretch (short break):
+    sprites/stretch_base.png
+    sprites/stretch_tail.png
+    sprites/stretch_squint.png
+    sprites/stretch_ear.png
+  Nap (long break):
+    sprites/nap_base.png
+    sprites/nap_breathe.png
+    sprites/nap_blink.png
+    sprites/nap_ear.png
+    sprites/nap_tail.png
+*/
+
+document.addEventListener('DOMContentLoaded', ()=>{
+
+  /* ---------- DOM refs ---------- */
+  const foxEl = document.getElementById('fox');
+  const foxLine = document.getElementById('foxLine');
+  const timeDisplay = document.getElementById('timeDisplay');
+  const sessionLabel = document.getElementById('sessionLabel');
+  const percentLabel = document.getElementById('percentLabel');
+  const mainAction = document.getElementById('mainAction');
+  const mainLabel = document.getElementById('mainLabel');
+  const mainIcon = document.getElementById('mainIcon');
+  const skipBtn = document.getElementById('skipBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  /* ---------- Fox frames and lines (naming convention) ---------- */
+  const foxFrames = {
+    neutral: {
+      base: "sprites/neutral_base.png",
+      blink: "sprites/neutral_blink.png",
+      ear: "sprites/neutral_ear.png",
+      tail: "sprites/neutral_tail.png",
+      lines: ["I’m here when you are.","Fox is waiting patiently.","Ready when you’re ready."]
+    },
+    alert: {
+      base: "sprites/alert_base.png",
+      blink: "sprites/alert_blink.png",
+      ear: "sprites/alert_ear.png",
+      tail: ["sprites/alert_tail1.png","sprites/alert_tail2.png"],
+      linesStart: ["Sharp as a fox. Let’s focus.","All ears, let’s hunt down this task."],
+      linesMid: ["Stay in the hunt. Don’t wander.","Halfway there — tail still wagging."],
+      linesEnd: ["Eyes on the finish line.","Almost there, don’t let go."]
+    },
+    stretch: {
+      base: "sprites/stretch_base.png",
+      tail: "sprites/stretch_tail.png",
+      squint: "sprites/stretch_squint.png",
+      ear: "sprites/stretch_ear.png",
+      lines: ["Fox is stretching, you should too.","Shake it out, small break for small wins."]
+    },
+    nap: {
+      base: "sprites/nap_base.png",
+      breathe: "sprites/nap_breathe.png",
+      blink: "sprites/nap_blink.png",
+      ear: "sprites/nap_ear.png",
+      tail: "sprites/nap_tail.png",
+      lines: ["Time’s up. I’m off to nap — you too.","Curling up… see you soon."]
+    }
+  };
+
+  /* ---------- tiny helpers ---------- */
+  function setFox(img){
+    foxEl.style.backgroundImage = img ? `url(${img})` : 'none';
+  }
+  function setLine(text){
+    foxLine.style.opacity = 0;
+    setTimeout(()=>{ foxLine.textContent = text; foxLine.style.opacity = 1; }, 260);
+  }
+  function random(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+  /* ---------- animation timers ---------- */
+  let microTimer = null;
+  function clearMicro(){ if(microTimer){ clearInterval(microTimer); microTimer = null; } }
+
+  /* Start micro animations appropriate to state */
+  function startMicro(stateName){
+    clearMicro();
+    if(stateName === 'neutral'){
+      // occasional blink ~12s
+      microTimer = setInterval(()=>{
+        setFox(foxFrames.neutral.blink);
+        setTimeout(()=> setFox(foxFrames.neutral.base), 260);
+      }, 12000);
+    } else if(stateName === 'alert'){
+      // mixed micro actions approx every 8-12s
+      microTimer = setInterval(()=>{
+        const r = Math.random();
+        if(r < 0.4){
+          // blink
+          setFox(foxFrames.alert.blink);
+          setTimeout(()=> setFox(foxFrames.alert.base), 220);
+        } else if(r < 0.75){
+          // tail wag (two frames)
+          setFox(foxFrames.alert.tail[0]);
+          setTimeout(()=> setFox(foxFrames.alert.tail[1]), 160);
+          setTimeout(()=> setFox(foxFrames.alert.base), 380);
+        } else {
+          // ear twitch
+          setFox(foxFrames.alert.ear);
+          setTimeout(()=> setFox(foxFrames.alert.base), 240);
+        }
+      }, 10000 + Math.floor(Math.random()*4000)); // randomized interval
+    } else if(stateName === 'stretch'){
+      // occasional small tail twitch
+      microTimer = setInterval(()=>{
+        setFox(foxFrames.stretch.tail);
+        setTimeout(()=> setFox(foxFrames.stretch.base), 260);
+      }, 8000);
+    } else if(stateName === 'nap'){
+      // breathing loop every ~3s; also occasional blink/ear/tail
+      let breathToggle = false;
+      microTimer = setInterval(()=>{
+        // breathing frame: toggle between base and breathe
+        breathToggle = !breathToggle;
+        setFox(breathToggle ? foxFrames.nap.breathe : foxFrames.nap.base);
+      }, 1500);
+      // also occasional little extras
+      // ear/tail/blink triggered separate timer
+      microTimer._extras = setInterval(()=>{
+        const r = Math.random();
+        if(r < 0.12){
+          setFox(foxFrames.nap.blink); setTimeout(()=> setFox(foxFrames.nap.base), 260);
+        } else if(r < 0.22){
+          setFox(foxFrames.nap.ear); setTimeout(()=> setFox(foxFrames.nap.base), 260);
+        } else if(r < 0.32){
+          setFox(foxFrames.nap.tail); setTimeout(()=> setFox(foxFrames.nap.base), 260);
+        }
+      }, 9000 + Math.floor(Math.random()*8000));
+    }
+  }
+
+  function stopAllMicro(){
+    clearMicro();
+  }
+
+  /* ---------- state + milestone flags ---------- */
+  const timerState = {
+    running: false,
+    mode: 'work', // 'work' | 'short' | 'long' (affects durations)
+    workMin: 25,
+    shortMin: 5,
+    longMin: 15,
+    remaining: 25 * 60,
+    sessionCount: 0,
+    intervalId: null
+  };
+
+  let milestoneFired = { mid:false, end:false };
+
+  function resetMilestones(){ milestoneFired = { mid:false, end:false }; }
+
+  /* ---------- set fox state (high-level) ---------- */
+  function setFoxState(stateName){
+    stopAllMicro();
+    if(stateName === 'neutral'){
+      setFox(foxFrames.neutral.base);
+      setLine(random(foxFrames.neutral.lines));
+    } else if(stateName === 'alert'){
+      setFox(foxFrames.alert.base);
+      setLine(random(foxFrames.alert.linesStart));
+    } else if(stateName === 'stretch'){
+      setFox(foxFrames.stretch.base);
+      setLine(random(foxFrames.stretch.lines));
+    } else if(stateName === 'nap'){
+      setFox(foxFrames.nap.base);
+      setLine(random(foxFrames.nap.lines));
+    }
+    startMicro(stateName);
+  }
+
+  /* ---------- milestone handler ---------- */
+  function onMilestone(pct){
+    // only relevant during work
+    if(timerState.mode !== 'work') return;
+
+    if(pct >= 50 && !milestoneFired.mid){
+      milestoneFired.mid = true;
+      setLine(random(foxFrames.alert.linesMid));
+      // small ear twitch
+      setFox(foxFrames.alert.ear);
+      setTimeout(()=> setFox(foxFrames.alert.base), 300);
+    }
+
+    if(pct >= 90 && !milestoneFired.end){
+      milestoneFired.end = true;
+      setLine(random(foxFrames.alert.linesEnd));
+      // blink
+      setFox(foxFrames.alert.blink);
+      setTimeout(()=> setFox(foxFrames.alert.base), 300);
+    }
+  }
+
+  /* ---------- timer display / logic ---------- */
+  function loadInputsDefaults(){
+    // uses defaults already in timerState (we can extend if inputs exist)
+    timerState.workMin = Math.max(1, timerState.workMin);
+    timerState.shortMin = Math.max(1, timerState.shortMin);
+    timerState.longMin = Math.max(1, timerState.longMin);
+  }
+
+  function setMode(mode){
+    timerState.mode = mode;
+    resetMilestones();
+    if(mode === 'work'){ timerState.remaining = timerState.workMin * 60; setFoxState('alert'); }
+    if(mode === 'short'){ timerState.remaining = timerState.shortMin * 60; setFoxState('stretch'); }
+    if(mode === 'long'){ timerState.remaining = timerState.longMin * 60; setFoxState('nap'); }
+    updateDisplay(); // refresh UI
+  }
+
+  function updateDisplay(){
+    const mm = Math.floor(timerState.remaining/60).toString().padStart(2,'0');
+    const ss = Math.floor(timerState.remaining%60).toString().padStart(2,'0');
+    timeDisplay.textContent = `${mm}:${ss}`;
+    sessionLabel.textContent = `Session ${timerState.sessionCount}`;
+    // percent of current mode elapsed
+    const total = (timerState.mode === 'work') ? timerState.workMin*60 : (timerState.mode === 'short') ? timerState.shortMin*60 : timerState.longMin*60;
+    const pct = Math.round( (1 - (timerState.remaining / total)) * 100 );
+    percentLabel.textContent = `${pct}%`;
+    // milestone checks when working & running
+    if(timerState.running && timerState.mode === 'work') onMilestone(pct);
+  }
+
+  function tick(){
+    if(!timerState.running) return;
+    if(timerState.remaining <= 0){
+      // session finished
+      if(timerState.mode === 'work'){
+        timerState.sessionCount++;
+        // choose long every 4 sessions
+        if(timerState.sessionCount % 4 === 0){
+          setMode('long');
+        } else {
+          setMode('short');
+        }
+      } else {
+        // break finished -> back to work
+        setMode('work');
+      }
+      updateDisplay();
+      return;
+    }
+    timerState.remaining--;
+    updateDisplay();
+  }
+
+  /* ---------- start/pause, skip, reset controls ---------- */
+  function startPause(){
+    if(!timerState.running){
+      timerState.running = true;
+      if(!timerState.intervalId) timerState.intervalId = setInterval(tick,1000);
+      mainLabel.textContent = 'Pause';
+      mainAction.setAttribute('aria-pressed','true');
+      // icon -> pause
+      mainIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+      // ensure mode is alert when starting work if currently neutral
+      if(timerState.mode === 'work') setFoxState('alert');
+    } else {
+      timerState.running = false;
+      mainLabel.textContent = 'Start';
+      mainAction.setAttribute('aria-pressed','false');
+      mainIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+      setFoxState('neutral');
+      // keep running interval alive but paused; we clear for safety
+      if(timerState.intervalId){ clearInterval(timerState.intervalId); timerState.intervalId = null; }
+    }
+  }
+
+  function skipSession(){
+    // fast-forward current session to its end
+    timerState.remaining = 0;
+    updateDisplay();
+  }
+
+  function resetAll(){
+    timerState.running = false;
+    if(timerState.intervalId){ clearInterval(timerState.intervalId); timerState.intervalId = null; }
+    timerState.sessionCount = 0;
+    setMode('work'); // reset to work mode with workMin
+    setFoxState('neutral');
+    mainLabel.textContent = 'Start';
+    mainIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+  }
+
+  /* ---------- initial setup ---------- */
+  loadInputsDefaults();
+  setMode('work'); // initialize mode -> sets fox and remaining
+  setFoxState('neutral'); // start neutral visually until Start pressed
+  updateDisplay();
+
+  /* ---------- wire UI actions ---------- */
+  mainAction.addEventListener('click', ()=> {
+    startPause();
+  });
+  skipBtn.addEventListener('click', ()=> {
+    skipSession();
+  });
+  resetBtn.addEventListener('click', ()=> {
+    resetAll();
+  });
+
+  /* ---------- quick preload of images (optional but useful) ---------- */
+  (function preload(){
+    const urls = [];
+    Object.values(foxFrames).forEach(group=>{
+      Object.values(group).forEach(v=>{
+        if(Array.isArray(v)) v.forEach(x=>urls.push(x));
+        else urls.push(v);
+      });
+    });
+    urls.forEach(u=>{
+      const img = new Image();
+      img.src = u;
+    });
+  })();
+
+}); // DOMContentLoaded
+</script>
+</body>
+</html>
