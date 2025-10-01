@@ -123,6 +123,24 @@ body{font-family:'Poppins',sans-serif;display:flex;align-items:center;justify-co
       <div class="controls-row">
         <button id="skipBtn" class="icon-circle" title="Skip"><svg class="icon-svg" viewBox="0 0 24 24"><path d="M4 18v-12l8 6-8 6zm9 0V6h2v12h-2z"/></svg></button>
         <button id="resetBtn" class="icon-circle" title="Reset"><svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 6V3L8 7l4 4V8c2.76 0 5 2.24 5 5 0 .65-.13 1.27-.36 1.84l1.46 1.46C19.82 15.03 20 14.03 20 13c0-4.42-3.58-8-8-8z"/></svg></button>
+        <button id="settingsBtn" class="icon-circle" title="Settings" aria-label="Settings" aria-expanded="false" aria-controls="settingsPanel">
+  <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden>
+    <path d="M19.14 12.94a7.14 7.14 0 0 0 0-1.88l2.03-1.58a.5.5 0 0 0 .12-.63l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.02 7.02 0 0 0-1.6-.93l-.36-2.54A.5.5 0 0 0 14.1 2h-3.2a.5.5 0 0 0-.49.42l-.36 2.54a7.02 7.02 0 0 0-1.6.93L5.06 5.9a.5.5 0 0 0-.6.22L2.54 9.44a.5.5 0 0 0 .12.63L4.69 11.6a7.14 7.14 0 0 0 0 1.88L2.66 15.06a.5.5 0 0 0-.12.63l1.92 3.32c.14.24.44.34.69.22l2.39-.96c.5.36 1.04.66 1.6.93l.36 2.54c.05.26.26.43.49.43h3.2c.23 0 .44-.17.49-.43l.36-2.54c.56-.27 1.1-.57 1.6-.93l2.39.96c.25.12.55.02.69-.22l1.92-3.32a.5.5 0 0 0-.12-.63l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"/>
+  </svg>
+</button>
+
+        <!-- Settings panel -->
+<div id="settingsPanel" class="settings-panel" aria-hidden="true">
+  <div class="settings-row">
+    <div class="settings-label">Work</div>
+    <input id="workInput" class="settings-input" type="number" min="1" value="25" />
+    <div class="settings-label">Short</div>
+    <input id="shortInput" class="settings-input" type="number" min="1" value="5" />
+    <div class="settings-label">Long</div>
+    <input id="longInput" class="settings-input" type="number" min="1" value="15" />
+  </div>
+</div>
+
       </div>
 
       <div class="footer">Designed by MaidenHQ — calm focus, small wins</div>
@@ -171,6 +189,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const mainIcon = document.getElementById('mainIcon');
   const skipBtn = document.getElementById('skipBtn');
   const resetBtn = document.getElementById('resetBtn');
+  const settingsBtn = document.getElementById('settingsBtn');
+const settingsPanel = document.getElementById('settingsPanel');
+const workInput = document.getElementById('workInput');
+const shortInput = document.getElementById('shortInput');
+const longInput = document.getElementById('longInput');
 
   /* ---------- Fox frames and lines (naming convention) ---------- */
   const foxFrames = {
@@ -432,7 +455,18 @@ document.addEventListener('DOMContentLoaded', ()=>{
     mainLabel.textContent = 'Start';
     mainIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
   }
+// toggle
+settingsBtn.addEventListener('click', ()=>{
+  const open = settingsPanel.classList.toggle('open');
+  settingsBtn.setAttribute('aria-expanded', String(open));
+  settingsPanel.setAttribute('aria-hidden', String(!open));
+  if(open) settingsBtn.classList.add('open'); else settingsBtn.classList.remove('open');
+});
 
+// inputs update durations
+workInput.addEventListener('change', ()=> { loadFromInputs(); if(state.mode==='work') setMode('work'); });
+shortInput.addEventListener('change', ()=> { loadFromInputs(); if(state.mode==='short') setMode('short'); });
+longInput.addEventListener('change', ()=> { loadFromInputs(); if(state.mode==='long') setMode('long'); });
   /* ---------- initial setup ---------- */
   loadInputsDefaults();
   setMode('work'); // initialize mode -> sets fox and remaining
