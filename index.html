@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       base: "sprites/alert_base.png",
       blink: "sprites/alert_blink.png",
       ear: "sprites/alert_ear.png",
-      tail: ["sprites/alert_tail1.png","sprites/alert_tail2.png"],
+      tail: "sprites/alert_tail.png",
       linesStart: ["Sharp as a fox. Let’s focus.","All ears, let’s hunt down this task."],
       linesMid: ["Stay in the hunt. Don’t wander.","Halfway there — tail still wagging."],
       linesEnd: ["Eyes on the finish line.","Almost there, don’t let go."]
@@ -225,10 +225,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
           setFox(foxFrames.alert.blink);
           setTimeout(()=> setFox(foxFrames.alert.base), 220);
         } else if(r < 0.75){
-          // tail wag (two frames)
-          setFox(foxFrames.alert.tail[0]);
-          setTimeout(()=> setFox(foxFrames.alert.tail[1]), 160);
-          setTimeout(()=> setFox(foxFrames.alert.base), 380);
+          // tail wag 
+         setFox(foxFrames.alert.tail);
+         setTimeout(()=> setFox(foxFrames.alert.base), 260);
         } else {
           // ear twitch
           setFox(foxFrames.alert.ear);
