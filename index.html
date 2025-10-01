@@ -488,6 +488,52 @@ settingsBtn.addEventListener('click', ()=>{
 workInput.addEventListener('change', ()=> { loadFromInputs(); if(state.mode==='work') setMode('work'); });
 shortInput.addEventListener('change', ()=> { loadFromInputs(); if(state.mode==='short') setMode('short'); });
 longInput.addEventListener('change', ()=> { loadFromInputs(); if(state.mode==='long') setMode('long'); });
+
+  // --- surgical listeners to apply settings immediately ---
+// (place after your input element declarations / loadFromInputs function)
+
+function applyNewDuration(modeKey, newMin){
+  newMin = Math.max(1, parseInt(newMin, 10) || 1);
+  // find old total for current mode to preserve progress fraction
+  const oldTotal = (modeKey === 'work') ? timerState.workMin*60
+                 : (modeKey === 'short') ? timerState.shortMin*60
+                 : timerState.longMin*60;
+
+  // percent elapsed so far (use 0 if oldTotal is 0)
+  const elapsedPct = oldTotal ? (1 - (timerState.remaining / oldTotal)) : 0;
+
+  // commit new minutes
+  if(modeKey === 'work') timerState.workMin = newMin;
+  if(modeKey === 'short') timerState.shortMin = newMin;
+  if(modeKey === 'long') timerState.longMin = newMin;
+
+  // compute new remaining so the same fraction of progress is kept
+  const newTotal = (modeKey === 'work') ? timerState.workMin*60
+                 : (modeKey === 'short') ? timerState.shortMin*60
+                 : timerState.longMin*60;
+
+  // If the mode changed is current mode, scale remaining; otherwise leave remaining alone
+  if(timerState.mode === modeKey){
+    // keep the same elapsedPct (clamp 0..1)
+    const pct = Math.max(0, Math.min(1, elapsedPct));
+    timerState.remaining = Math.max(1, Math.round((1 - pct) * newTotal));
+  }
+
+  // refresh UI
+  updateDisplay();
+}
+
+// attach listeners
+workInput.addEventListener('change', (e)=>{
+  applyNewDuration('work', e.target.value);
+});
+shortInput.addEventListener('change', (e)=>{
+  applyNewDuration('short', e.target.value);
+});
+longInput.addEventListener('change', (e)=>{
+  applyNewDuration('long', e.target.value);
+});
+/*End input update*/
   /* ---------- initial setup ---------- */
   loadInputsDefaults();
   setMode('work'); // initialize mode -> sets fox and remaining
