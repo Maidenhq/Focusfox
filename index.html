@@ -88,6 +88,29 @@ body{font-family:'Poppins',sans-serif;display:flex;align-items:center;justify-co
 .icon-circle{ width:48px;height:48px;border-radius:50%; background:var(--page-beige); border:2px solid var(--accent-blue); display:inline-flex;align-items:center;justify-content:center; box-shadow:2px 2px 0 var(--pink-shadow), -3px -3px 0 var(--white-shadow); cursor:pointer; transition: box-shadow .12s ease, transform .12s ease; }
 .icon-svg{ width:18px;height:18px; fill:var(--accent-blue) }
 
+ 
+/* settings panel with smooth transition */
+.settings-panel{
+  width:100%;
+  max-width:620px;
+  overflow:hidden;
+  transition:max-height 360ms cubic-bezier(.2,.9,.3,1), opacity 260ms ease, padding 260ms ease;
+  max-height:0;
+  opacity:0;
+  padding:0 12px;
+  border-radius:10px;
+  border: 2px solid var(--accent-blue);
+  margin-top:10px;
+  position:relative;
+  z-index:1;
+}
+.settings-panel.open{ max-height:220px; opacity:1; padding:12px; }
+
+/* settings content */
+.settings-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
+.settings-label{font-family:'Instrument Serif',serif;font-size:14px;color:var(--accent-blue); width:56px; text-align:right}
+.settings-input{ width:72px;padding:8px;border-radius:10px;border:1px solid #eee;text-align:center;font-weight:700;color:var(--accent-blue); font-family:'Poppins',sans-serif} 
+
 /* reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .fox-sprite { transition: none !important; animation: none !important; }
