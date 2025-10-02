@@ -79,6 +79,51 @@ body{font-family:'Poppins',sans-serif;display:flex;align-items:center;justify-co
 /* fox line */
 .fox-line { margin-top:10px; font-family:'Instrument Serif',serif; font-size:14px; color:var(--accent-blue); text-align:center; transition:opacity .32s ease; opacity:1; }
 
+/* Pixel progress bar */
+#pixelBar{
+  --segments: 20;            /* change to 10 / 20 / 40 for different resolution */
+  --size: 10px;             /* size of each pixel block (square) */
+  --gap: 4px;               /* gap between blocks to keep pixel feel */
+  display: grid;
+  grid-template-columns: repeat(var(--segments), var(--size));
+  gap: var(--gap);
+  padding: 6px;
+  border-radius: 6px;
+  background: transparent;
+  /* keep pixel-perfect look on high-DPI */
+  image-rendering: pixelated;
+  transform: translateZ(0);
+  /* visually center on narrow screens */
+  max-width: calc((var(--size) * var(--segments)) + (var(--gap) * (var(--segments) - 1)));
+}
+
+/* single cell */
+#pixelBar .cell{
+  width: var(--size);
+  height: var(--size);
+  background: rgba(0,0,0,0.06); /* empty color (subtle) */
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.02);
+  transition: background 240ms linear;
+  image-rendering: pixelated;
+  border-radius: 0px; /* blocky */
+}
+
+/* filled cell (brand blue) */
+#pixelBar .cell.filled{
+  background: #005DB8; /* brand blue */
+  box-shadow: 0 0 0 0 rgba(0,0,0,0);
+}
+
+/* optional small accent when filled (pink shadow) */
+#pixelBar .cell.filled::after{
+  content: "";
+  display:block;
+  width:100%; height:100%;
+  box-shadow: 3px 3px 0 #f762d0;
+  opacity: 0.06; pointer-events:none;
+}
+  
+
 /* timer text */
 .timer-number{ font-family:'Instrument Serif',serif; font-size:44px; color:var(--accent-blue); font-weight:700; margin-top:6px; text-align:center}
 .small-meta{ font-family:'Poppins',sans-serif; font-size:13px; color:rgba(0,0,0,0.45); margin-top:4px; text-align:center }
@@ -140,6 +185,16 @@ body{font-family:'Poppins',sans-serif;display:flex;align-items:center;justify-co
       <!-- FOX -->
       <div id="fox" class="fox-sprite" aria-hidden="true"></div>
       <div id="foxLine" class="fox-line">Fox is waiting…</div>
+
+      <!-- Pixel progress bar -->
+<div id="pixelBarWrap" aria-hidden="false" style="margin-top:12px; text-align:center;">
+  <div id="pixelBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Session progress" 
+       style="display:inline-block;"></div>
+  <div id="pixelBarText" style="font-family: Poppins, sans-serif; font-size:12px; color:rgba(0,0,0,0.45); margin-top:6px;">
+    0%
+  </div>
+</div>
+
 
       <!-- TIME -->
       <div class="timer-number" id="timeDisplay">25:00</div>
@@ -451,6 +506,47 @@ function clearMicro(){
     timerState.longMin = Math.max(1, timerState.longMin);
   }
 
+  /* ---------- Pixel progress bar logic ---------- */
+function buildPixelBar(segs = 20, sizePx = 10, gapPx = 4){
+  const bar = document.getElementById('pixelBar');
+  if(!bar) return;
+  bar.style.setProperty('--segments', segs);
+  bar.style.setProperty('--size', sizePx + 'px');
+  bar.style.setProperty('--gap', gapPx + 'px');
+  // avoid rebuilding if already built
+  if(bar.dataset.built === String(segs)) return;
+  bar.innerHTML = '';
+  for(let i=0;i<segs;i++){
+    const d = document.createElement('div');
+    d.className = 'cell';
+    d.setAttribute('data-index', i);
+    bar.appendChild(d);
+  }
+  bar.dataset.built = String(segs);
+}
+
+function setPixelProgress(pct){
+  const bar = document.getElementById('pixelBar');
+  const text = document.getElementById('pixelBarText');
+  if(!bar) return;
+  pct = Math.max(0, Math.min(100, Math.round(pct)));
+  const segs = parseInt(bar.style.getPropertyValue('--segments')) || 20;
+  const filled = Math.round((pct/100) * segs);
+  const cells = bar.querySelectorAll('.cell');
+  cells.forEach((c, idx) => {
+    if(idx < filled) c.classList.add('filled'); else c.classList.remove('filled');
+  });
+  // update ARIA & text
+  bar.setAttribute('aria-valuenow', String(pct));
+  if(text) text.textContent = `${pct}%`;
+}
+
+/* build once on init — choose 20 segments (change if you want denser) */
+buildPixelBar(20, 10, 4);
+
+/* call setPixelProgress(pct) from updateDisplay() — I'll show exact place to change below. */
+
+
   function setMode(mode){
     timerState.mode = mode;
     resetMilestones();
@@ -471,6 +567,10 @@ function clearMicro(){
     percentLabel.textContent = `${pct}%`;
     // milestone checks when working & running
     if(timerState.running && timerState.mode === 'work') onMilestone(pct);
+      const pct = Math.round( (1 - (timerState.remaining / total)) * 100 );
+  percentLabel.textContent = `${pct}%`;
+  setPixelProgress(pct);   // <-- NEW: updates pixel bar
+
   }
 
   function tick(){
