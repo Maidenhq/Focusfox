@@ -272,9 +272,13 @@ const longInput = document.getElementById('longInput');
 }
 
   function setLine(text){
-    foxLine.style.opacity = 0;
-    setTimeout(()=>{ foxLine.textContent = text; foxLine.style.opacity = 1; }, 260);
-  }
+  foxLine.style.opacity = 0;
+  setTimeout(()=>{
+    foxLine.textContent = text;
+    foxLine.style.opacity = 1;
+  }, 320); // matches CSS transition
+}
+
   function random(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
   /* ---------- animation timers ---------- */
