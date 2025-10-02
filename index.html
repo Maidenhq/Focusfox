@@ -835,11 +835,18 @@ function adaptiveBuildPixelBar(minSegs = 8, maxSegs = 60){
 adaptiveBuildPixelBar();*/
 
 // Debounced resize to re-adapt
+// Debounced resize to re-adapt the pixel bar (calls buildPixelBar which exists)
 let _adaptResizeTimer = null;
 window.addEventListener('resize', ()=> {
   clearTimeout(_adaptResizeTimer);
-  _adaptResizeTimer = setTimeout(()=> adaptiveBuildPixelBar(), 140);
+  _adaptResizeTimer = setTimeout(()=> {
+    try { 
+      // rebuild based on CSS vars (will respect rem units)
+      buildPixelBar(); 
+    } catch(e) { /* ignore */ }
+  }, 140);
 });
+
 
 
 
