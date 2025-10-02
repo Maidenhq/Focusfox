@@ -80,54 +80,74 @@ body{font-family:'Poppins',sans-serif;display:flex;align-items:center;justify-co
 .fox-line { margin-top:10px; font-family:'Instrument Serif',serif; font-size:14px; color:var(--accent-blue); text-align:center; transition:opacity .32s ease; opacity:1; }
 
 /* Pixel progress bar */
+/* Pixel progress bar updated to align horizontal */
 #pixelBar{
   --segments: 20;            /* change to 10 / 20 / 40 for different resolution */
   --size: 10px;             /* size of each pixel block (square) */
   --gap: 4px;               /* gap between blocks to keep pixel feel */
+
   display: grid;
-  grid-template-columns: repeat(var(--segments), var(--size));
+  grid-auto-flow: column;            /* <-- ensure horizontal layout */
+  grid-auto-columns: var(--size);    /* one column = one block width */
   gap: var(--gap);
   padding: 6px;
   border-radius: 6px;
   background: transparent;
-  /* keep pixel-perfect look on high-DPI */
   image-rendering: pixelated;
   transform: translateZ(0);
-  /* visually center on narrow screens */
-  max-width: calc((var(--size) * var(--segments)) + (var(--gap) * (var(--segments) - 1)));
+  justify-content: center;          /* center horizontally */
+  max-width: 100%;
+  overflow-x: auto;                 /* allow horizontal scroll on very narrow viewports */
+  -webkit-overflow-scrolling: touch;
+}
+
+    @media (max-width: 420px){
+  #pixelBar { --size: 12px; --gap: 4px; --segments: 20; }
 }
 
 /* single cell */
 #pixelBar .cell{
   width: var(--size);
   height: var(--size);
-  background: rgba(0,0,0,0.06); /* empty color (subtle) */
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.02);
-  transition: background 240ms linear;
+  background: rgba(10,10,10,0.03); /* empty color (subtle) */
+  border: 1px solid rgba(0,0,0,0.04); /* slight bevel to read blocks as separate pixels */
+  box-sizing: border-box;
+  transition: background 160ms linear, box-shadow 160ms linear;
   image-rendering: pixelated;
   border-radius: 0px; /* blocky */
+  display:inline-block;
+  vertical-align: middle;
 }
 
 /* filled cell (brand blue) */
 #pixelBar .cell.filled{
-  background: #005DB8; /* brand blue */
+  background: var(--accent-blue); /* brand blue */
+  border-color: rgba(0,0,0,0.03);
   box-shadow: 0 0 0 0 rgba(0,0,0,0);
 }
 
-/* optional small accent when filled (pink shadow) */
+/* subtle accent shadow for filled — very light */
 #pixelBar .cell.filled::after{
   content: "";
   display:block;
   width:100%; height:100%;
   box-shadow: 3px 3px 0 #f762d0;
-  opacity: 0.06; pointer-events:none;
+  opacity: 0.04;
+  pointer-events:none;
 }
+
+
+
   
 
 /* timer text */
 .timer-number{ font-family:'Instrument Serif',serif; font-size:44px; color:var(--accent-blue); font-weight:700; margin-top:6px; text-align:center}
 .small-meta{ font-family:'Poppins',sans-serif; font-size:13px; color:rgba(0,0,0,0.45); margin-top:4px; text-align:center }
+/* hide the second percent under session label (visual only) */
+.small-meta .percent { display: none; }
 
+
+  
 /* main action */
 .main-action{
   width:360px; max-width:92%;
