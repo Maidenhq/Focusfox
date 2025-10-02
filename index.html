@@ -1,4 +1,4 @@
-
+ 
 <!doctype html>
 <html lang="en">
 <head>
@@ -88,8 +88,8 @@ body{
 */
 .card {
   transition: max-height 220ms ease, padding 180ms ease;
-  max-height: calc(100vh - 48px); /* normally fit the viewport less some margin */
-  overflow: auto;
+  max-height: none;
+  overflow: visible;
 }
 
 /* slightly smaller default on narrow viewports so top/bottom not clipped */
@@ -282,11 +282,11 @@ body{
     padding: 20px;
   }
 
-  .card {
+ .card {
     width: min(820px, 94vw);
-    /* leave a little breathing room top+bottom: subtract body padding*2 (approx 40px here) */
-    max-height: calc(100vh - 40px);
-    overflow: hidden;   /* outer card shouldn't show page scrollbars */
+    /* allow the card to grow up to almost the viewport, but don't force internal scrollbars */
+    max-height: calc(98vh - 40px);
+    overflow: visible;   /* let page scroll if content exceeds card */
     display: flex;
     flex-direction: column;
   }
@@ -326,6 +326,7 @@ body{
   }
   .h-title { font-size: clamp(2.4rem, 6vw, 5rem); }
   .main-action { width: clamp(200px, 50vw, 300px); }
+   .card { max-height: none; }
 }
 
 /* phones */
