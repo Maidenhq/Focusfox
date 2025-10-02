@@ -15,6 +15,9 @@
   --pink-shadow: #f762d0;
   --white-shadow: #fff5f9;
   --frame-size: 180px; /* change to 32px if you exported 32x32 sprites */
+   --segments: 20;            /* change to 10 / 20 / 40 for different resolution */
+  --size: 15px;             /* size of each pixel block (square) */
+  --gap: 5px;               /* gap between blocks to keep pixel feel */
 }
 
 /* base */
@@ -82,10 +85,6 @@ body{font-family:'Poppins',sans-serif;display:flex;align-items:center;justify-co
 /* Pixel progress bar */
 /* Pixel progress bar updated to align horizontal */
 #pixelBar{
-  --segments: 20;            /* change to 10 / 20 / 40 for different resolution */
-  --size: 15px;             /* size of each pixel block (square) */
-  --gap: 5px;               /* gap between blocks to keep pixel feel */
-
   display: grid;
   grid-auto-flow: column;            /* <-- ensure horizontal layout */
   grid-auto-columns: var(--size);    /* one column = one block width */
