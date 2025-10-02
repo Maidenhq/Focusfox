@@ -693,26 +693,44 @@ function clearMicro(){
 /* ---------- Pixel progress bar logic (improved) ---------- */
 /* Call with explicit values if you want to override; otherwise it
    will use the CSS --segments / --size / --gap already defined in :root. */
-function buildPixelBar(segs, sizePx, gapPx){
+function buildPixelBar(segs, sizeVal, gapVal){
   const bar = document.getElementById('pixelBar');
   if(!bar) return;
 
-  // Read CSS defaults from computed styles if arguments are omitted
+  // read computed root values (try both legacy and new var names)
   const cs = getComputedStyle(document.documentElement);
-  const rootSegments = parseInt(cs.getPropertyValue('--segments')) || 20;
-  const rootSize = cs.getPropertyValue('--size') ? parseInt(cs.getPropertyValue('--size')) : null;
-  const rootGap  = cs.getPropertyValue('--gap')  ? parseInt(cs.getPropertyValue('--gap'))  : null;
+  const cssSegments = cs.getPropertyValue('--segments').trim();
+  const cssSizeRaw  = (cs.getPropertyValue('--pixel-size') || cs.getPropertyValue('--size') || '').trim();
+  const cssGapRaw   = (cs.getPropertyValue('--pixel-gap') || cs.getPropertyValue('--gap') || '').trim();
 
-  const useSegs = (typeof segs === 'number') ? Math.max(1, Math.round(segs)) : rootSegments;
-  const useSize = (typeof sizePx === 'number') ? Math.max(4, Math.round(sizePx)) : (rootSize || 10);
-  const useGap  = (typeof gapPx === 'number')  ? Math.max(0, Math.round(gapPx))  : (rootGap  || 4);
+  // final segment count
+  const useSegs = (typeof segs === 'number' && !Number.isNaN(segs)) ? Math.max(1, Math.round(segs)) : (cssSegments ? parseInt(cssSegments,10) : 20);
 
-  // update CSS custom props so CSS-driven sizing matches
+  // helper to normalize a passed value to a CSS token string (preserve units if provided)
+  function normalizeSize(val, cssRaw, fallback){
+    if(typeof val === 'string' && val.trim()){
+      return val.trim();
+    }
+    if(typeof val === 'number' && !Number.isNaN(val)){
+      return `${val}px`; // caller passed a raw number -> treat as px for backward compat
+    }
+    if(cssRaw && cssRaw.length){
+      return cssRaw;
+    }
+    return fallback;
+  }
+
+  const useSize = normalizeSize(sizeVal, cssSizeRaw, '0.9rem');
+  const useGap  = normalizeSize(gapVal,  cssGapRaw,  '0.25rem');
+
+  // write back both old / new variable names so CSS using either will work
   bar.style.setProperty('--segments', String(useSegs));
-  bar.style.setProperty('--size', `${useSize}px`);
-  bar.style.setProperty('--gap', `${useGap}px`);
+  bar.style.setProperty('--size', useSize);
+  bar.style.setProperty('--pixel-size', useSize);
+  bar.style.setProperty('--gap', useGap);
+  bar.style.setProperty('--pixel-gap', useGap);
 
-  // avoid rebuilding if same count already built
+  // avoid rebuilding DOM if already built with same #segments
   if(bar.dataset.built === String(useSegs)) return;
 
   bar.innerHTML = '';
@@ -724,6 +742,9 @@ function buildPixelBar(segs, sizePx, gapPx){
   }
   bar.dataset.built = String(useSegs);
 }
+
+buildPixelBar(); // uses CSS vars and preserves units (rem-friendly)
+  
 
 /* Set progress; reads --segments from computed style (robust) */
 function setPixelProgress(pct){
@@ -752,7 +773,7 @@ function setPixelProgress(pct){
 }
 
 // ---------- adaptive pixel bar that understands rem/em/px ----------
-function toPx(valueStr){
+/*function toPx(valueStr){
   // valueStr might be like "1.2rem", "15px", "1.5", or "1.2em"
   if(!valueStr) return NaN;
   valueStr = String(valueStr).trim();
@@ -797,7 +818,7 @@ function adaptiveBuildPixelBar(minSegs = 8, maxSegs = 60){
 }
 
 //  buildPixelBar(...) call:
-adaptiveBuildPixelBar();
+adaptiveBuildPixelBar();*/
 
 // Debounced resize to re-adapt
 let _adaptResizeTimer = null;
