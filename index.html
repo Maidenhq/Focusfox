@@ -524,7 +524,7 @@ function clearMicro(){
   }
 
   /* ---------- Pixel progress bar logic ---------- */
-function buildPixelBar(segs = 20, sizePx = 10, gapPx = 4){
+function buildPixelBar(segs = 20, sizePx = 15, gapPx = 6){
   const bar = document.getElementById('pixelBar');
   if(!bar) return;
   bar.style.setProperty('--segments', segs);
