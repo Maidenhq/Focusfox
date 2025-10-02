@@ -274,64 +274,101 @@ const longInput = document.getElementById('longInput');
   function random(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
   /* ---------- animation timers ---------- */
-  let microTimer = null;
-  function clearMicro(){ if(microTimer){ clearInterval(microTimer); microTimer = null; } }
+  let microTimers = [];
+// robust clear of any scheduled micro timers (intervals + timeouts)
+function clearMicro(){
+  try{
+    if(!microTimers || microTimers.length === 0) {
+      microTimers = [];
+      return;
+    }
+    // clear everything in the array (works for both interval and timeout IDs)
+    microTimers.forEach(id => {
+      try { clearInterval(id); } catch(e){}
+      try { clearTimeout(id); } catch(e){}
+    });
+  } finally {
+    microTimers = [];
+  }
+}
+
+
 
   /* Start micro animations appropriate to state */
-  function startMicro(stateName){
-    clearMicro();
-    if(stateName === 'neutral'){
-      // occasional blink ~12s
-      microTimer = setInterval(()=>{
-        setFox(foxFrames.neutral.blink);
-        setTimeout(()=> setFox(foxFrames.neutral.base), 260);
-      }, 12000);
-    } else if(stateName === 'alert'){
-      // mixed micro actions approx every 8-12s
-      microTimer = setInterval(()=>{
-        const r = Math.random();
-        if(r < 0.4){
-          // blink
-          setFox(foxFrames.alert.blink);
-          setTimeout(()=> setFox(foxFrames.alert.base), 220);
-        } else if(r < 0.75){
-          // tail wag 
-         setFox(foxFrames.alert.tail);
-         setTimeout(()=> setFox(foxFrames.alert.base), 260);
-        } else {
-          // ear twitch
-          setFox(foxFrames.alert.ear);
-          setTimeout(()=> setFox(foxFrames.alert.base), 240);
-        }
-      }, 10000 + Math.floor(Math.random()*4000)); // randomized interval
-    } else if(stateName === 'stretch'){
-      // occasional small tail twitch
-      microTimer = setInterval(()=>{
-        setFox(foxFrames.stretch.tail);
-        setTimeout(()=> setFox(foxFrames.stretch.base), 260);
-      }, 8000);
-    } else if(stateName === 'nap'){
-      // breathing loop every ~3s; also occasional blink/ear/tail
-      let breathToggle = false;
-      microTimer = setInterval(()=>{
-        // breathing frame: toggle between base and breathe
-        breathToggle = !breathToggle;
-        setFox(breathToggle ? foxFrames.nap.breathe : foxFrames.nap.base);
-      }, 1500);
-      // also occasional little extras
-      // ear/tail/blink triggered separate timer
-      microTimer._extras = setInterval(()=>{
-        const r = Math.random();
-        if(r < 0.12){
-          setFox(foxFrames.nap.blink); setTimeout(()=> setFox(foxFrames.nap.base), 260);
-        } else if(r < 0.22){
-          setFox(foxFrames.nap.ear); setTimeout(()=> setFox(foxFrames.nap.base), 260);
-        } else if(r < 0.32){
-          setFox(foxFrames.nap.tail); setTimeout(()=> setFox(foxFrames.nap.base), 260);
-        }
-      }, 9000 + Math.floor(Math.random()*8000));
-    }
+ function startMicro(stateName){
+  clearMicro();
+
+  if(stateName === 'neutral'){
+    // occasional blink ~12s
+    const id = setInterval(()=>{
+      const t = setTimeout(()=> setFox(foxFrames.neutral.base), 260);
+      setFox(foxFrames.neutral.blink);
+      microTimers.push(t);
+    }, 12000);
+    microTimers.push(id);
+
+  } else if(stateName === 'alert'){
+    // mixed micro actions approx every 8-12s
+    const id = setInterval(()=>{
+      const r = Math.random();
+      if(r < 0.4){
+        // blink
+        setFox(foxFrames.alert.blink);
+        const t = setTimeout(()=> setFox(foxFrames.alert.base), 220);
+        microTimers.push(t);
+      } else if(r < 0.75){
+        // tail twitch (single frame)
+        setFox(foxFrames.alert.tail);
+        const t = setTimeout(()=> setFox(foxFrames.alert.base), 260);
+        microTimers.push(t);
+      } else {
+        // ear twitch
+        setFox(foxFrames.alert.ear);
+        const t = setTimeout(()=> setFox(foxFrames.alert.base), 240);
+        microTimers.push(t);
+      }
+    }, 10000 + Math.floor(Math.random()*4000));
+    microTimers.push(id);
+
+  } else if(stateName === 'stretch'){
+    // occasional small tail twitch
+    const id = setInterval(()=>{
+      setFox(foxFrames.stretch.tail);
+      const t = setTimeout(()=> setFox(foxFrames.stretch.base), 260);
+      microTimers.push(t);
+    }, 8000);
+    microTimers.push(id);
+
+  } else if(stateName === 'nap'){
+    // breathing loop every ~1.5s and extra occasional events
+    let breathToggle = false;
+    const id = setInterval(()=>{
+      breathToggle = !breathToggle;
+      setFox(breathToggle ? foxFrames.nap.breathe : foxFrames.nap.base);
+    }, 1500);
+    microTimers.push(id);
+
+    // extras: occasional blink/ear/tail every ~9-17s
+    const extraId = setInterval(()=>{
+      const r = Math.random();
+      if(r < 0.12){
+        setFox(foxFrames.nap.blink);
+        const t = setTimeout(()=> setFox(foxFrames.nap.base), 260);
+        microTimers.push(t);
+      } else if(r < 0.22){
+        setFox(foxFrames.nap.ear);
+        const t = setTimeout(()=> setFox(foxFrames.nap.base), 260);
+        microTimers.push(t);
+      } else if(r < 0.32){
+        setFox(foxFrames.nap.tail);
+        const t = setTimeout(()=> setFox(foxFrames.nap.base), 260);
+        microTimers.push(t);
+      }
+    }, 9000 + Math.floor(Math.random()*8000));
+    microTimers.push(extraId);
   }
+}
+
 
   function stopAllMicro(){
     clearMicro();
@@ -382,7 +419,9 @@ const longInput = document.getElementById('longInput');
       setLine(random(foxFrames.alert.linesMid));
       // small ear twitch
       setFox(foxFrames.alert.ear);
-      setTimeout(()=> setFox(foxFrames.alert.base), 300);
+      const t = setTimeout(()=> setFox(foxFrames.alert.base), 300);
+      microTimers.push(t);
+
     }
 
     if(pct >= 90 && !milestoneFired.end){
@@ -390,7 +429,9 @@ const longInput = document.getElementById('longInput');
       setLine(random(foxFrames.alert.linesEnd));
       // blink
       setFox(foxFrames.alert.blink);
-      setTimeout(()=> setFox(foxFrames.alert.base), 300);
+      const t = setTimeout(()=> setFox(foxFrames.alert.base), 300);
+      microTimers.push(t);
+
     }
   }
 
@@ -492,10 +533,10 @@ settingsBtn.addEventListener('click', ()=>{
   if(open) settingsBtn.classList.add('open'); else settingsBtn.classList.remove('open');
 });
 
-// inputs update durations
+/* inputs update durations
 workInput.addEventListener('change', ()=> { loadFromInputs(); if(state.mode==='work') setMode('work'); });
 shortInput.addEventListener('change', ()=> { loadFromInputs(); if(state.mode==='short') setMode('short'); });
-longInput.addEventListener('change', ()=> { loadFromInputs(); if(state.mode==='long') setMode('long'); });
+longInput.addEventListener('change', ()=> { loadFromInputs(); if(state.mode==='long') setMode('long'); });*/
 
   // --- surgical listeners to apply settings immediately ---
 // (place after your input element declarations / loadFromInputs function)
@@ -532,15 +573,10 @@ function applyNewDuration(modeKey, newMin){
 }
 
 // attach listeners
-workInput.addEventListener('change', (e)=>{
-  applyNewDuration('work', e.target.value);
-});
-shortInput.addEventListener('change', (e)=>{
-  applyNewDuration('short', e.target.value);
-});
-longInput.addEventListener('change', (e)=>{
-  applyNewDuration('long', e.target.value);
-});
+workInput.addEventListener('change', (e)=> { applyNewDuration('work', e.target.value); });
+shortInput.addEventListener('change', (e)=> { applyNewDuration('short', e.target.value); });
+longInput.addEventListener('change', (e)=> { applyNewDuration('long', e.target.value); });
+
 /*End input update*/
   /* ---------- initial setup ---------- */
   loadInputsDefaults();
@@ -568,18 +604,63 @@ longInput.addEventListener('change', (e)=>{
       else urls.push(v);
     });
   });
-  // inject imgs into foxEl
+
+  // create <img> nodes (hidden until their file loads)
+  let neutralLoaded = false;
+  let loadedCount = 0;
+  const total = urls.length;
+  const timeoutMs = 1500; // fallback if network slow
+
   urls.forEach(u=>{
     if(!foxEl.querySelector(`img[data-src="${u}"]`)){
-      const img = new Image();
+      const img = document.createElement('img');
       img.src = u;
       img.dataset.src = u;
+      img.alt = '';
+      img.draggable = false;
+      img.decoding = 'async';
+      img.style.visibility = 'hidden';    // hide until loaded
+      img.addEventListener('load', ()=>{
+        loadedCount++;
+        img.style.visibility = 'visible';
+        if(!neutralLoaded && u === foxFrames.neutral.base){
+          neutralLoaded = true;
+          setFox(foxFrames.neutral.base);
+          setLine(random(foxFrames.neutral.lines));
+          foxEl.setAttribute('aria-hidden', 'false');
+        }
+        if(loadedCount === total && !neutralLoaded){
+          neutralLoaded = true;
+          setFox(foxFrames.neutral.base);
+          setLine(random(foxFrames.neutral.lines));
+          foxEl.setAttribute('aria-hidden', 'false');
+        }
+      });
+      setTimeout(()=>{
+        if(!neutralLoaded && u === foxFrames.neutral.base){
+          neutralLoaded = true;
+          setFox(foxFrames.neutral.base);
+          setLine(random(foxFrames.neutral.lines));
+          foxEl.setAttribute('aria-hidden', 'false');
+        }
+      }, timeoutMs);
+
       foxEl.appendChild(img);
     }
   });
-    // 🔧 Fix: show neutral base immediately
-  setFox(foxFrames.neutral.base);
+
+  const neutralImg = foxEl.querySelector(`img[data-src="${foxFrames.neutral.base}"]`);
+  if(neutralImg && neutralImg.complete){
+    neutralImg.style.visibility = 'visible';
+    if(!neutralLoaded){
+      neutralLoaded = true;
+      setFox(foxFrames.neutral.base);
+      setLine(random(foxFrames.neutral.lines));
+      foxEl.setAttribute('aria-hidden', 'false');
+    }
+  }
 })();
+
 
 
 }); // DOMContentLoaded
