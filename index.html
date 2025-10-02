@@ -56,6 +56,48 @@ body{
 
 }
 
+/* prevent critical elements from shrinking inside the column flex layout */
+.fox-sprite {
+  flex: 0 0 auto;           /* don’t shrink or grow */
+  min-width: var(--frame-size);
+  min-height: var(--frame-size);
+}
+
+/* keep start button visually stable */
+.main-action {
+  flex-shrink: 0;           /* prevents it being squashed */
+}
+
+/* allow controls to wrap elegantly */
+.controls-row { flex-wrap: wrap; }
+
+/* settings panel sizing - never exceed viewport width */
+.settings-panel {
+  max-width: min(620px, 92vw);
+  box-sizing: border-box;
+}
+
+/* card responsive height behavior:
+   - default: allow scrolling inside card if tall content
+   - when .expanded is added, give extra vertical room so contents don't compress
+*/
+.card {
+  transition: max-height 220ms ease, padding 180ms ease;
+  max-height: calc(100vh - 48px); /* normally fit the viewport less some margin */
+  overflow: auto;
+}
+
+/* slightly smaller default on narrow viewports so top/bottom not clipped */
+@media (max-width: 900px) {
+  .card { max-height: calc(100vh - 32px); }
+}
+
+/* when we add .expanded (JS toggle) allow the card to grow to nearly full viewport */
+.card.expanded {
+  max-height: calc(98vh);    /* room for header chrome; adjust if needed */
+}
+  
+
   
 
 /* header */
@@ -207,6 +249,10 @@ body{
 .settings-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
 .settings-label{font-family:'Instrument Serif',serif;font-size:14px;color:var(--accent-blue); width:56px; text-align:right}
 .settings-input{ width:72px;padding:8px;border-radius:10px;border:1px solid #eee;text-align:center;font-weight:700;color:var(--accent-blue); font-family:'Poppins',sans-serif} 
+
+.settings-row { gap:12px; align-items:center; justify-content:center; flex-wrap:wrap; }
+.settings-row > * { min-width: 0; } /* allow children to shrink to available width */
+  
 
 /* reduced motion */
 @media (prefers-reduced-motion: reduce) {
@@ -847,12 +893,25 @@ function updateDisplay(){
     mainIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
   }
 // toggle
+// find card once
+const cardEl = document.querySelector('.card');
+
 settingsBtn.addEventListener('click', ()=>{
   const open = settingsPanel.classList.toggle('open');
   settingsBtn.setAttribute('aria-expanded', String(open));
   settingsPanel.setAttribute('aria-hidden', String(!open));
   if(open) settingsBtn.classList.add('open'); else settingsBtn.classList.remove('open');
+
+  // NEW: expand card to give the settings panel space; collapse when panel is closed
+  cardEl.classList.toggle('expanded', open);
+
+  // optional: focus the first input when opening for better keyboard flow
+  if(open) {
+    const firstInput = settingsPanel.querySelector('input');
+    if(firstInput) firstInput.focus();
+  }
 });
+
 
 /* inputs update durations
 workInput.addEventListener('change', ()=> { loadFromInputs(); if(state.mode==='work') setMode('work'); });
