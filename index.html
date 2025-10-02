@@ -616,9 +616,34 @@ function setPixelProgress(pct){
   if(text) text.textContent = `${pct}%`;
 }
 
+// adaptive build: compute segment count from available width and CSS variables
+function adaptiveBuildPixelBar(minSegs = 8, maxSegs = 40) {
+  const bar = document.getElementById('pixelBar');
+  const card = document.querySelector('.card') || document.body;
+  if (!bar || !card) return;
 
-/* build once on init — choose 20 segments (change if you want denser) */
-buildPixelBar();
+  const styles = getComputedStyle(document.documentElement);
+  // read CSS variables (strip 'px')
+  const size = parseFloat(styles.getPropertyValue('--size')) || 1;
+  const gap  = parseFloat(styles.getPropertyValue('--gap'))  || 5;
+  // compute available width inside card (leave space for padding)
+  const available = Math.max(120, card.clientWidth - 120); // keep some breathing room
+  // compute how many blocks fit (approx)
+  const segs = Math.max(minSegs, Math.min(maxSegs, Math.floor((available + gap) / (size + gap))));
+  // set CSS var and rebuild
+  document.documentElement.style.setProperty('--segments', segs);
+  // rebuild the DOM cells to match new count
+  buildPixelBar(segs, size, gap);
+}
+
+// run on init and on resize (debounced)
+adaptiveBuildPixelBar();
+let _resizeTimer;
+window.addEventListener('resize', ()=> {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(()=> adaptiveBuildPixelBar(), 160);
+});
+
 
 /* call setPixelProgress(pct) from updateDisplay() — I'll show exact place to change below. */
 
