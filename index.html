@@ -272,32 +272,50 @@ body{
 
 /* ---------- Responsive adjustments ---------- */
 /* general narrow screens */
-/* ---------- Fit-the-screen rule for constrained heights (small laptops) ----------
-   When viewport height is small (or you can tune by max-width), make the card
-   fit the viewport by giving it a max-height and internal scroll. This prevents
-   page-level clipping while keeping the visual center feel. */
+
+/* ---------- Compact / short-viewport fixes (surgical) ---------- */
+/* trigger when viewport height is small (12" laptop style) AND not tiny phone width */
 @media (max-height: 820px) and (min-width: 720px) {
-  body {
-    align-items: center; /* keep it visually centered on constrained laptops */
-    padding: 20px;
+  /* stop vertical centering — align content to top so header/fox don't get clipped */
+  body { align-items: flex-start; padding: 14px 18px; }
+
+  /* reduce card paddings so more fits vertically; allow document scroll (not inner card) */
+  .card {
+    padding: 18px;
+    margin: 8px 0;
+    max-height: none;       /* don't enforce inner card scrollbar */
+    overflow: visible;
   }
 
- .card {
-    width: min(820px, 94vw);
-    /* allow the card to grow up to almost the viewport, but don't force internal scrollbars */
-    max-height: calc(98vh - 40px);
-    overflow: visible;   /* let page scroll if content exceeds card */
-    display: flex;
-    flex-direction: column;
+  /* Compact visual sizes */
+  .h-title { font-size: clamp(2.0rem, 6vw, 4.5rem); line-height: 1; margin-bottom: 6px; }
+  .h-sub   { font-size: 0.9rem; margin-bottom: 6px; }
+
+  /* shrink fox sprite */
+  :root { --frame-size: 7.5rem; }       /* reduces fox size responsively */
+  .fox-sprite { width: var(--frame-size); height: var(--frame-size); margin: 6px auto; }
+
+  /* tighten vertical spacing inside stack so it uses less height */
+  .stack { gap: 10px; margin-top: 8px; }
+
+  /* progress bar and labels smaller */
+  #pixelBar { padding: 6px 4px; }
+  .fox-line { font-size: 1.1rem; }
+  .timer-number { font-size: clamp(1.8rem, 4.5vw, 2.4rem); margin-top: 6px; }
+
+  /* make action button slightly smaller and allow it to wrap if needed */
+  .main-action {
+    height: 48px;
+    font-size: 15px;
+    width: clamp(200px, 48vw, 340px);
   }
 
-  /* Make the card body scroll internally if content overflows */
-  .card > main.stack {
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-right: 8px; /* prevent content hitting edge when scrolled */
-  }
+  /* compact controls and settings spacing */
+  .controls-row { gap: 10px; }
+  .settings-row { gap: 8px; }
+  .settings-panel.open { max-height:200px; padding:8px; }
 }
+
 
 /* ---------- Mobile: let page scroll normally (preferred UX on phones) */
 @media (max-width: 719px) {
@@ -362,7 +380,10 @@ body{
 </head>
 <body>
   <div class="card" role="application" aria-label="MaidenHQ Focus Timer">
-
+  <div style="text-align:center">
+      <div class="h-title">Focus Timer</div>
+      <div class="h-sub">Pomodoro with Focus Fox</div>
+    </div>
 
     <main class="stack" aria-live="polite">
       <!-- FOX -->
