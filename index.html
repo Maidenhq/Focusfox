@@ -65,10 +65,14 @@ body{font-family:'Poppins',sans-serif;display:flex;align-items:center;justify-co
   image-rendering: pixelated;
   position: absolute;
   top: 0; left: 0;
+  opacity: 0;                 /* start invisible */
+  transition: opacity 0.22s ease;  /* smooth fade */
   display: none;
 }
 .fox-sprite img.active {
   display: block;
+  opacity: 1;                 /* fade in when active */
+
 }
   
 
