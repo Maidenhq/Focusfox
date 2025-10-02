@@ -574,7 +574,7 @@ function buildPixelBar(segs, sizePx, gapPx){
 
   // update CSS custom props so CSS-driven sizing matches
   bar.style.setProperty('--segments', String(useSegs));
-  bar.style.setProperty('--size', `${useSize}rem`);
+  bar.style.setProperty('--size', `${useSize}px`);
   bar.style.setProperty('--gap', `${useGap}px`);
 
   // avoid rebuilding if same count already built
@@ -616,33 +616,61 @@ function setPixelProgress(pct){
   if(text) text.textContent = `${pct}%`;
 }
 
-// adaptive build: compute segment count from available width and CSS variables
-function adaptiveBuildPixelBar(minSegs = 8, maxSegs = 40) {
-  const bar = document.getElementById('pixelBar');
-  const card = document.querySelector('.card') || document.body;
-  if (!bar || !card) return;
+// ---------- adaptive pixel bar that understands rem/em/px ----------
+function toPx(valueStr){
+  // valueStr might be like "1.2rem", "15px", "1.5", or "1.2em"
+  if(!valueStr) return NaN;
+  valueStr = String(valueStr).trim();
+  const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
 
-  const styles = getComputedStyle(document.documentElement);
-  // read CSS variables (strip 'px')
-  const size = parseFloat(styles.getPropertyValue('--size')) || 1;
-  const gap  = parseFloat(styles.getPropertyValue('--gap'))  || 5;
-  // compute available width inside card (leave space for padding)
-  const available = Math.max(120, card.clientWidth - 120); // keep some breathing room
-  // compute how many blocks fit (approx)
-  const segs = Math.max(minSegs, Math.min(maxSegs, Math.floor((available + gap) / (size + gap))));
-  // set CSS var and rebuild
-  document.documentElement.style.setProperty('--segments', segs);
-  // rebuild the DOM cells to match new count
-  buildPixelBar(segs, size, gap);
+  if(valueStr.endsWith('px')) return parseFloat(valueStr);
+  if(valueStr.endsWith('rem')) return parseFloat(valueStr) * rootFontSize;
+  if(valueStr.endsWith('em'))  return parseFloat(valueStr) * rootFontSize; // we assume root context is fine
+  // fallback: numeric value with no unit -> assume px
+  const n = parseFloat(valueStr);
+  return isNaN(n) ? NaN : n;
 }
 
-// run on init and on resize (debounced)
+function adaptiveBuildPixelBar(minSegs = 8, maxSegs = 60){
+  const bar = document.getElementById('pixelBar');
+  const card = document.querySelector('.card') || document.body;
+  if(!bar || !card) return;
+
+  const rootStyles = getComputedStyle(document.documentElement);
+  // read CSS vars (may be in rem/em/px)
+  const sizeRaw = rootStyles.getPropertyValue('--size') || rootStyles.getPropertyValue('--size ').trim();
+  const gapRaw  = rootStyles.getPropertyValue('--gap')  || rootStyles.getPropertyValue('--gap ').trim();
+
+  const sizePx = toPx(sizeRaw) || 12; // fallback px
+  const gapPx  = toPx(gapRaw)  || 4;
+
+  // available width (leave some breathing room for paddings & controls)
+  const computedAvailable = Math.max(120, card.clientWidth - 120);
+  // If you prefer to measure the actual pixelBarWrap width use:
+  // const wrap = document.getElementById('pixelBarWrap'); const computedAvailable = (wrap? wrap.clientWidth : card.clientWidth) - 40;
+
+  // compute how many blocks fit across the available width
+  const segsFit = Math.floor((computedAvailable + gapPx) / (sizePx + gapPx));
+  // clamp to min/max
+  const segs = Math.max(minSegs, Math.min(maxSegs, segsFit || minSegs));
+
+  // update CSS var (optional, keeps styling in sync)
+  document.documentElement.style.setProperty('--segments', String(segs));
+
+  // rebuild cells with px sizes passed (we pass sizePx & gapPx so buildPixelBar sets inline --size/--gap if it uses them)
+  buildPixelBar(segs, Math.round(sizePx), Math.round(gapPx));
+}
+
+//  buildPixelBar(...) call:
 adaptiveBuildPixelBar();
-let _resizeTimer;
+
+// Debounced resize to re-adapt
+let _adaptResizeTimer = null;
 window.addEventListener('resize', ()=> {
-  clearTimeout(_resizeTimer);
-  _resizeTimer = setTimeout(()=> adaptiveBuildPixelBar(), 160);
+  clearTimeout(_adaptResizeTimer);
+  _adaptResizeTimer = setTimeout(()=> adaptiveBuildPixelBar(), 140);
 });
+
 
 
 /* call setPixelProgress(pct) from updateDisplay() — I'll show exact place to change below. */
