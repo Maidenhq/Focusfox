@@ -542,7 +542,7 @@ function buildPixelBar(segs, sizePx, gapPx){
 
   // update CSS custom props so CSS-driven sizing matches
   bar.style.setProperty('--segments', String(useSegs));
-  bar.style.setProperty('--size', `${useSize}px`);
+  bar.style.setProperty('--size', `${useSize}rem`);
   bar.style.setProperty('--gap', `${useGap}px`);
 
   // avoid rebuilding if same count already built
