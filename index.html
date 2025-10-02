@@ -23,8 +23,8 @@
 /* base */
 *{box-sizing:border-box}
 
-html, body {
-  /* allow natural height so scrolling works normally */
+/* ---------- layout base (replace previous html,body & body rules) ---------- */
+html,body{
   min-height: 100%;
   height: auto;
   margin: 0;
@@ -32,13 +32,13 @@ html, body {
   color: var(--accent-blue);
 }
 
-/* center horizontally only, let content flow vertically */
-body {
+/* Default: horizontal centering only; card flows from top */
+body{
   font-family: 'Poppins', sans-serif;
-  display: flex;
-  justify-content: center;        /* keep horizontal centering */
-  align-items: flex-start;        /* IMPORTANT: no vertical centering */
-  padding: 36px 16px;             /* keep some lateral padding on small screens */
+  display:flex;
+  justify-content:center;       /* center horizontally */
+  align-items:flex-start;       /* let card start at top by default */
+  padding: 36px 16px;
   box-sizing: border-box;
 }
 
@@ -215,8 +215,53 @@ body {
 
 /* ---------- Responsive adjustments ---------- */
 /* general narrow screens */
+/* ---------- Fit-the-screen rule for constrained heights (small laptops) ----------
+   When viewport height is small (or you can tune by max-width), make the card
+   fit the viewport by giving it a max-height and internal scroll. This prevents
+   page-level clipping while keeping the visual center feel. */
+@media (max-height: 820px) and (min-width: 720px) {
+  body {
+    align-items: center; /* keep it visually centered on constrained laptops */
+    padding: 20px;
+  }
+
+  .card {
+    width: min(820px, 94vw);
+    /* leave a little breathing room top+bottom: subtract body padding*2 (approx 40px here) */
+    max-height: calc(100vh - 40px);
+    overflow: hidden;   /* outer card shouldn't show page scrollbars */
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Make the card body scroll internally if content overflows */
+  .card > main.stack {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 8px; /* prevent content hitting edge when scrolled */
+  }
+}
+
+/* ---------- Mobile: let page scroll normally (preferred UX on phones) */
+@media (max-width: 719px) {
+  body {
+    align-items: flex-start;  /* top-aligned for mobile */
+    padding: 18px 12px;
+  }
+  .card {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 10px;
+    padding: 20px;
+  }
+  
+  /* scale down the huge title so it doesn't push the card offscreen */
+  .h-title { font-size: clamp(2.5rem, 10vw, 6.5rem); margin-bottom: 4px; }
+}
+  
+/* small laptops / narrow desktop (keep responsive scaling, but don't force a fixed 720px width) */
 @media (max-width: 900px) {
-  .card { padding:20px; width:720px; }
+  .card { padding:20px; width: min(92vw, 820px); } /* <-- flexible, not fixed */
   :root { --frame-size: 140px; --size: 0.9rem; --gap: 4px; }
   .h-title { font-size:5rem; letter-spacing:-0.16rem; }
   .timer-number { font-size:36px; }
@@ -224,7 +269,9 @@ body {
   .controls-row { gap:10px; }
 }
 
+
 /* small phones */
+
 @media (max-width: 480px) {
   body { padding:18px; }
   .card { width:100%; padding:16px; box-shadow: none; }
@@ -234,15 +281,12 @@ body {
   .timer-number { font-size:34px; }
   .main-action { width:220px; height:46px; font-size:15px; }
   .controls-row { gap:8px; }
-  /* make fox slightly smaller and centered */
   .fox-sprite { width: var(--frame-size); height: var(--frame-size); margin-bottom: 6px; }
-  /* if you want to hide the fox completely on very small screens, uncomment: */
-  /* .fox-sprite { display:none; } */
-  /* Pixel bar: ensure it stays horizontal and fits */
   #pixelBar { overflow-x:auto; -webkit-overflow-scrolling: touch; max-width: 100%; padding: 4px; }
   #pixelBar .cell { width: var(--size); height: var(--size); }
   .small-meta { font-size:12px; }
 }
+
 
 @media (min-height: 900px) {
   body { align-items: center; }
@@ -253,6 +297,8 @@ body {
   body { padding: 20px 12px; }
   .card { padding: 20px; }
 }
+
+  
   
   
 </style>
