@@ -556,22 +556,27 @@ buildPixelBar(20, 10, 4);
     updateDisplay(); // refresh UI
   }
 
-  function updateDisplay(){
-    const mm = Math.floor(timerState.remaining/60).toString().padStart(2,'0');
-    const ss = Math.floor(timerState.remaining%60).toString().padStart(2,'0');
-    timeDisplay.textContent = `${mm}:${ss}`;
-    sessionLabel.textContent = `Session ${timerState.sessionCount}`;
-    // percent of current mode elapsed
-    const total = (timerState.mode === 'work') ? timerState.workMin*60 : (timerState.mode === 'short') ? timerState.shortMin*60 : timerState.longMin*60;
-    const pct = Math.round( (1 - (timerState.remaining / total)) * 100 );
-    percentLabel.textContent = `${pct}%`;
-    // milestone checks when working & running
-    if(timerState.running && timerState.mode === 'work') onMilestone(pct);
-      const pct = Math.round( (1 - (timerState.remaining / total)) * 100 );
-  percentLabel.textContent = `${pct}%`;
-  setPixelProgress(pct);   // <-- NEW: updates pixel bar
+function updateDisplay(){
+  const mm = Math.floor(timerState.remaining/60).toString().padStart(2,'0');
+  const ss = Math.floor(timerState.remaining%60).toString().padStart(2,'0');
+  timeDisplay.textContent = `${mm}:${ss}`;
+  sessionLabel.textContent = `Session ${timerState.sessionCount}`;
 
-  }
+  // percent of current mode elapsed
+  const total = (timerState.mode === 'work') ? timerState.workMin*60
+              : (timerState.mode === 'short') ? timerState.shortMin*60
+              : timerState.longMin*60;
+
+  // compute pct exactly once
+  const pct = Math.round( (1 - (timerState.remaining / total)) * 100 );
+  percentLabel.textContent = `${pct}%`;
+
+  // update pixel bar (safe if pixelBar missing)
+  try { setPixelProgress(pct); } catch(e){ /* ignore */ }
+
+  // milestone checks when working & running
+  if(timerState.running && timerState.mode === 'work') onMilestone(pct);
+}
 
   function tick(){
     if(!timerState.running) return;
