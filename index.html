@@ -16,8 +16,8 @@
   --white-shadow: #fff5f9;
   --frame-size: 180px; /* change to 32px if you exported 32x32 sprites */
    --segments: 20;            /* change to 10 / 20 / 40 for different resolution */
-  --size: 15px;             /* size of each pixel block (square) */
-  --gap: 5px;               /* gap between blocks to keep pixel feel */
+  --size: 18px;             /* size of each pixel block (square) */
+  --gap: 2px;               /* gap between blocks to keep pixel feel */
 }
 
 /* base */
@@ -84,21 +84,22 @@ body{font-family:'Poppins',sans-serif;display:flex;align-items:center;justify-co
 
 /* Pixel progress bar */
 /* Pixel progress bar updated to align horizontal */
+/* Pixel progress bar updated to align horizontal (use explicit template) */
 #pixelBar{
   display: grid;
-  grid-auto-flow: column;            /* <-- ensure horizontal layout */
-  grid-auto-columns: var(--size);    /* one column = one block width */
+  grid-template-columns: repeat(var(--segments), var(--size));
   gap: var(--gap);
   padding: 6px;
   border-radius: 6px;
   background: transparent;
   image-rendering: pixelated;
   transform: translateZ(0);
-  justify-content: center;          /* center horizontally */
+  justify-content: center;
   max-width: 100%;
-  overflow-x: auto;                 /* allow horizontal scroll on very narrow viewports */
+  overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+
 
  
 
@@ -205,8 +206,7 @@ body{font-family:'Poppins',sans-serif;display:flex;align-items:center;justify-co
 
       <!-- Pixel progress bar -->
 <div id="pixelBarWrap" aria-hidden="false" style="margin-top:12px; text-align:center;">
-  <div id="pixelBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Session progress" 
-       style="display:inline-block;"></div>
+  <div id="pixelBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Session progress"></div>
   <div id="pixelBarText" style="font-family: Poppins, sans-serif; font-size:12px; color:rgba(0,0,0,0.45); margin-top:6px;">
     0%
   </div>
@@ -523,43 +523,70 @@ function clearMicro(){
     timerState.longMin = Math.max(1, timerState.longMin);
   }
 
-  /* ---------- Pixel progress bar logic ---------- */
-function buildPixelBar(segs = 20, sizePx = 15, gapPx = 6){
+/* ---------- Pixel progress bar logic (improved) ---------- */
+/* Call with explicit values if you want to override; otherwise it
+   will use the CSS --segments / --size / --gap already defined in :root. */
+function buildPixelBar(segs, sizePx, gapPx){
   const bar = document.getElementById('pixelBar');
   if(!bar) return;
-  bar.style.setProperty('--segments', segs);
-  bar.style.setProperty('--size', sizePx + 'px');
-  bar.style.setProperty('--gap', gapPx + 'px');
-  // avoid rebuilding if already built
-  if(bar.dataset.built === String(segs)) return;
+
+  // Read CSS defaults from computed styles if arguments are omitted
+  const cs = getComputedStyle(document.documentElement);
+  const rootSegments = parseInt(cs.getPropertyValue('--segments')) || 20;
+  const rootSize = cs.getPropertyValue('--size') ? parseInt(cs.getPropertyValue('--size')) : null;
+  const rootGap  = cs.getPropertyValue('--gap')  ? parseInt(cs.getPropertyValue('--gap'))  : null;
+
+  const useSegs = (typeof segs === 'number') ? Math.max(1, Math.round(segs)) : rootSegments;
+  const useSize = (typeof sizePx === 'number') ? Math.max(4, Math.round(sizePx)) : (rootSize || 10);
+  const useGap  = (typeof gapPx === 'number')  ? Math.max(0, Math.round(gapPx))  : (rootGap  || 4);
+
+  // update CSS custom props so CSS-driven sizing matches
+  bar.style.setProperty('--segments', String(useSegs));
+  bar.style.setProperty('--size', `${useSize}px`);
+  bar.style.setProperty('--gap', `${useGap}px`);
+
+  // avoid rebuilding if same count already built
+  if(bar.dataset.built === String(useSegs)) return;
+
   bar.innerHTML = '';
-  for(let i=0;i<segs;i++){
+  for(let i=0;i<useSegs;i++){
     const d = document.createElement('div');
     d.className = 'cell';
     d.setAttribute('data-index', i);
     bar.appendChild(d);
   }
-  bar.dataset.built = String(segs);
+  bar.dataset.built = String(useSegs);
 }
 
+/* Set progress; reads --segments from computed style (robust) */
 function setPixelProgress(pct){
   const bar = document.getElementById('pixelBar');
   const text = document.getElementById('pixelBarText');
   if(!bar) return;
   pct = Math.max(0, Math.min(100, Math.round(pct)));
-  const segs = parseInt(bar.style.getPropertyValue('--segments')) || 20;
+
+  // prefer computed style (works even if you changed --segments in CSS)
+  const cs = getComputedStyle(bar);
+  const segsFromCss = parseInt(cs.getPropertyValue('--segments')) || parseInt(bar.dataset.built) || 20;
+  const segs = Math.max(1, segsFromCss);
+
   const filled = Math.round((pct/100) * segs);
   const cells = bar.querySelectorAll('.cell');
-  cells.forEach((c, idx) => {
+  // if cells length doesn't match segs, rebuild to ensure parity
+  if(cells.length !== segs){
+    buildPixelBar(segs, parseInt(cs.getPropertyValue('--size')) || undefined, parseInt(cs.getPropertyValue('--gap')) || undefined);
+  }
+  bar.querySelectorAll('.cell').forEach((c, idx) => {
     if(idx < filled) c.classList.add('filled'); else c.classList.remove('filled');
   });
-  // update ARIA & text
+
   bar.setAttribute('aria-valuenow', String(pct));
   if(text) text.textContent = `${pct}%`;
 }
 
+
 /* build once on init — choose 20 segments (change if you want denser) */
-buildPixelBar(20, 10, 4);
+buildPixelBar();
 
 /* call setPixelProgress(pct) from updateDisplay() — I'll show exact place to change below. */
 
