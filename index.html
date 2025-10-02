@@ -755,22 +755,35 @@ function setPixelProgress(pct){
 
   // prefer computed style (works even if you changed --segments in CSS)
   const cs = getComputedStyle(bar);
-  const segsFromCss = parseInt(cs.getPropertyValue('--segments')) || parseInt(bar.dataset.built) || 20;
-  const segs = Math.max(1, segsFromCss);
+  let segsFromCss = cs.getPropertyValue('--segments').trim();
+
+  // try to parse a numeric segments value; if not numeric, fall back to dataset or 20
+  let segs = Number(segsFromCss);
+  if (!Number.isFinite(segs) || segs < 1) {
+    segs = parseInt(bar.dataset.built, 10);
+    if (!Number.isFinite(segs) || segs < 1) segs = 20;
+  }
+  segs = Math.max(1, Math.round(segs));
 
   const filled = Math.round((pct/100) * segs);
-  const cells = bar.querySelectorAll('.cell');
-  // if cells length doesn't match segs, rebuild to ensure parity
-  if(cells.length !== segs){
-    buildPixelBar(segs, parseInt(cs.getPropertyValue('--size')) || undefined, parseInt(cs.getPropertyValue('--gap')) || undefined);
+
+  // ensure we have the correct number of cells; rebuild if not
+  let cells = bar.querySelectorAll('.cell');
+  if (cells.length !== segs) {
+    // call buildPixelBar with only segs so the function can read CSS vars (and respects rem if you use it)
+    buildPixelBar(segs);
+    // re-query after rebuild
+    cells = bar.querySelectorAll('.cell');
   }
-  bar.querySelectorAll('.cell').forEach((c, idx) => {
+
+  cells.forEach((c, idx) => {
     if(idx < filled) c.classList.add('filled'); else c.classList.remove('filled');
   });
 
   bar.setAttribute('aria-valuenow', String(pct));
   if(text) text.textContent = `${pct}%`;
 }
+
 
 // ---------- adaptive pixel bar that understands rem/em/px ----------
 /*function toPx(valueStr){
