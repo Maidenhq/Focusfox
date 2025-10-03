@@ -166,12 +166,13 @@ body{
 .fox-line { margin-top:10px; font-family:'Instrument Serif',serif; font-size:1.5rem; color:var(--accent-blue); text-align:center; transition:opacity .32s ease; opacity:1; }
 
 /* bubble positioned to the right of the fox */
-.fox-bubble {
+/*.fox-bubble {
   position: absolute;
   top: 6%;
   left: 110%;
   transform-origin: left center;
   display: inline-block;
+  min-width:130px;
   max-width: var(--bubble-max-width);
   background: var(--bubble-bg);
   border: 1px solid var(--bubble-border);
@@ -184,7 +185,7 @@ body{
   word-wrap: break-word;
 
   /* ✨ Brand-style flat pink shadow */
-  box-shadow: 2px 2px 0 var(--pink-shadow);
+/*  box-shadow: 2px 2px 0 var(--pink-shadow);
 
   transition: opacity var(--transition-time) ease, transform var(--transition-time) ease;
   opacity: 1;
@@ -193,23 +194,23 @@ body{
 
 
 /* "top-left corner" triangle tail (white) */
-.fox-bubble::before {
+/*.fox-bubble::before {
   content: '';
   position: absolute;
   top: 10px;              /* distance from top of bubble to attach triangle */
-  left: -10px;            /* flush into the bubble corner */
-  border-style: solid;
+/*  left: -10px;            /* flush into the bubble corner */
+/*  border-style: solid;
   border-width: 10px 10px 0 0; /* creates a right triangle aligned top-left */
-  border-color: transparent var(--bubble-bg) transparent transparent;
-  z-index: 22;            /* above the border pseudo element */
+/*  border-color: transparent var(--bubble-bg) transparent transparent;
+/*  z-index: 22;            /* above the border pseudo element */
 }
 
 /* border for the triangle so the tail has the bubble border outline */
-.fox-bubble::after {
+/*.fox-bubble::after {
   content: '';
   position: absolute;
   top: 9px;               /* slightly higher / left to show border behind */
-  left: -12px;
+/*  left: -12px;
   border-style: solid;
   border-width: 12px 12px 0 0;
   border-color: transparent var(--pink-shadow) transparent transparent;
@@ -217,13 +218,13 @@ body{
 }
 
 /* hidden / fading state used during text swap */
-.fox-bubble.hidden {
+/*.fox-bubble.hidden {
   opacity: 0;
   transform: translateX(-6px) scale(0.96);
 }
 
 /* optional 'pop' effect for when bubble becomes visible */
-.fox-bubble.pop {
+/*.fox-bubble.pop {
   transform: translateX(0) scale(1.02);
   transition: transform 0.18s cubic-bezier(.2,.9,.3,1), opacity var(--transition-time) ease;
 }
@@ -590,23 +591,23 @@ const longInput = document.getElementById('longInput');
       blink: "sprites/neutral_blink.png",
       ear: "sprites/neutral_ear.png",
       tail: "sprites/neutral_tail.png",
-      lines: ["I’m here when you are.","Fox is waiting patiently.","Ready when you’re ready."]
+      lines: ["I’m here when you are.","I’ll be right here until you start.","Ready when you’re ready."]
     },
     alert: {
       base: "sprites/alert_base.png",
       blink: "sprites/alert_blink.png",
       ear: "sprites/alert_ear.png",
       tail: "sprites/alert_tail.png",
-      linesStart: ["Sharp as a fox. Let’s focus.","All ears, let’s hunt down this task."],
-      linesMid: ["Stay in the hunt. Don’t wander.","Halfway there — tail still wagging."],
-      linesEnd: ["Eyes on the finish line.","Almost there, don’t let go."]
+      linesStart: ["I’m all ears. Let’s focus.","All ears, let’s hunt down this task."],
+      linesMid: ["Stay in the hunt! Don’t wander.","We’re halfway there and my tail is still wagging."],
+      linesEnd: ["Got my eyes on the finish line.","Almost there, don’t let go."]
     },
     stretch: {
       base: "sprites/stretch_base.png",
       tail: "sprites/stretch_tail.png",
       squint: "sprites/stretch_squint.png",
       ear: "sprites/stretch_ear.png",
-      lines: ["Fox is stretching, you should too.","Shake it out, small break for small wins."]
+      lines: ["I’m taking a stretch break! Join me!","I’m taking a quick shake! Time for a small break."]
     },
     nap: {
       base: "sprites/nap_base.png",
@@ -614,7 +615,7 @@ const longInput = document.getElementById('longInput');
       blink: "sprites/nap_blink.png",
       ear: "sprites/nap_ear.png",
       tail: "sprites/nap_tail.png",
-      lines: ["Time’s up. I’m off to nap — you too.","Curling up… see you soon."]
+      lines: ["Time’s up. I’m off to nap, you should too.","I'm curling up in my den… see you soon."]
     }
   };
 
