@@ -18,6 +18,11 @@
    --segments: 20;            /* change to 10 / 20 / 40 for different resolution */
   --size: 1rem;             /* size of each pixel block (square) */
   --gap: 0.25rem;               /* gap between blocks to keep pixel feel */
+   --bubble-bg: #fef3f8;
+  --bubble-border: #f762d0;              /* border color (matching your UI) */
+  --bubble-radius: 6px;
+  --bubble-max-width: 240px;
+  --transition-time: 0.28s;
 }
 
 /* base */
@@ -124,6 +129,7 @@ body{
  .fox-container {
   position: relative;
   display: inline-block;
+  vertical-align: middle;
 }
 .fox-sprite {
   width: var(--frame-size);
@@ -159,35 +165,69 @@ body{
  
 .fox-line { margin-top:10px; font-family:'Instrument Serif',serif; font-size:1.5rem; color:var(--accent-blue); text-align:center; transition:opacity .32s ease; opacity:1; }
 
- .fox-bubble {
-  display: inline-block;
+/* bubble positioned to the right of the fox */
+.fox-bubble {
   position: absolute;
-  top: -60px; /* adjust so it sits above the fox */
-  left: 50%;
-  transform: translateX(-50%);
-  background: #fff;
-  border: 2px solid #ccc;
-  border-radius: 12px;
-  padding: 8px 12px;
-  font-size: 0.9rem;
-  color: #333;
-  text-align: center;
-  max-width: 250px; /* prevents it from stretching too wide */
+  top: 6%;
+  left: 110%;
+  transform-origin: left center;
+  display: inline-block;
+  max-width: var(--bubble-max-width);
+  background: var(--bubble-bg);
+  border: 1px solid var(--bubble-border);
+  border-radius: var(--bubble-radius);
+  padding: 10px 14px;
+  font-size: 0.92rem;
+  color: var(--accent-blue);
+  text-align: left;
+  white-space: normal;
   word-wrap: break-word;
-  box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
-  white-space: normal; /* allows wrapping */
+
+  /* ✨ Brand-style flat pink shadow */
+  box-shadow: 2px 2px 0 var(--pink-shadow);
+
+  transition: opacity var(--transition-time) ease, transform var(--transition-time) ease;
+  opacity: 1;
+  z-index: 20;
 }
 
+
+/* "top-left corner" triangle tail (white) */
+.fox-bubble::before {
+  content: '';
+  position: absolute;
+  top: 10px;              /* distance from top of bubble to attach triangle */
+  left: -10px;            /* flush into the bubble corner */
+  border-style: solid;
+  border-width: 10px 10px 0 0; /* creates a right triangle aligned top-left */
+  border-color: transparent var(--bubble-bg) transparent transparent;
+  z-index: 22;            /* above the border pseudo element */
+}
+
+/* border for the triangle so the tail has the bubble border outline */
 .fox-bubble::after {
   content: '';
   position: absolute;
-  bottom: -12px; /* tail points down */
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 12px;
+  top: 9px;               /* slightly higher / left to show border behind */
+  left: -12px;
   border-style: solid;
-  border-color: #fff transparent transparent transparent;
+  border-width: 12px 12px 0 0;
+  border-color: transparent var(--pink-shadow) transparent transparent;
+  z-index: 21;            /* sits behind ::before but above background */
 }
+
+/* hidden / fading state used during text swap */
+.fox-bubble.hidden {
+  opacity: 0;
+  transform: translateX(-6px) scale(0.96);
+}
+
+/* optional 'pop' effect for when bubble becomes visible */
+.fox-bubble.pop {
+  transform: translateX(0) scale(1.02);
+  transition: transform 0.18s cubic-bezier(.2,.9,.3,1), opacity var(--transition-time) ease;
+}
+
  
 /* Pixel progress bar */
 /* Pixel progress bar updated to align horizontal */
