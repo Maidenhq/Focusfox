@@ -121,6 +121,10 @@ body{
 .stack{display:flex;flex-direction:column;align-items:center;gap:18px;margin-top:18px;width:100%}
 
 /* fox */
+ .fox-container {
+  position: relative;
+  display: inline-block;
+}
 .fox-sprite {
   width: var(--frame-size);
   height: var(--frame-size);
@@ -152,6 +156,7 @@ body{
   
 
 /* fox line */
+ 
 .fox-line { margin-top:10px; font-family:'Instrument Serif',serif; font-size:1.5rem; color:var(--accent-blue); text-align:center; transition:opacity .32s ease; opacity:1; }
 
  .fox-bubble {
@@ -426,9 +431,10 @@ body{
 
     <main class="stack" aria-live="polite">
       <!-- FOX --> 
+     <div class="fox-container">
       <div id="fox" class="fox-sprite" aria-hidden="true"></div>
       <div id="foxLine" class="fox-line fox-bubble">Fox is waiting…</div>
-
+     </div>
       <!-- Pixel progress bar -->
 <div id="pixelBarWrap" aria-hidden="false" style="margin-top:12px; text-align:center;">
   <div id="pixelBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Session progress"></div>
