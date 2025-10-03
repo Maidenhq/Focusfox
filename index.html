@@ -154,6 +154,36 @@ body{
 /* fox line */
 .fox-line { margin-top:10px; font-family:'Instrument Serif',serif; font-size:1.5rem; color:var(--accent-blue); text-align:center; transition:opacity .32s ease; opacity:1; }
 
+ .fox-bubble {
+  display: inline-block;
+  position: absolute;
+  top: -60px; /* adjust so it sits above the fox */
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 2px solid #ccc;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  color: #333;
+  text-align: center;
+  max-width: 250px; /* prevents it from stretching too wide */
+  word-wrap: break-word;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+  white-space: normal; /* allows wrapping */
+}
+
+.fox-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -12px; /* tail points down */
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 12px;
+  border-style: solid;
+  border-color: #fff transparent transparent transparent;
+}
+ 
 /* Pixel progress bar */
 /* Pixel progress bar updated to align horizontal */
 /* Pixel progress bar updated to align horizontal (use explicit template) */
@@ -395,9 +425,9 @@ body{
     </div>
 
     <main class="stack" aria-live="polite">
-      <!-- FOX -->
+      <!-- FOX --> 
       <div id="fox" class="fox-sprite" aria-hidden="true"></div>
-      <div id="foxLine" class="fox-line">Fox is waiting…</div>
+      <div id="foxLine" class="fox-line fox-bubble">Fox is waiting…</div>
 
       <!-- Pixel progress bar -->
 <div id="pixelBarWrap" aria-hidden="false" style="margin-top:12px; text-align:center;">
