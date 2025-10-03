@@ -469,6 +469,16 @@ body{
 
 document.addEventListener('DOMContentLoaded', ()=>{
 
+ // compact-mode toggle for short/laptop heights (keeps behavior consistent on resize)
+function updateCompactMode(){
+  const compact = (window.innerHeight < 820 && window.innerWidth >= 720);
+  document.documentElement.classList.toggle('compact-height', compact);
+}
+window.addEventListener('resize', updateCompactMode);
+updateCompactMode(); // run once on load
+
+
+ 
   /* ---------- DOM refs ---------- */
   const foxEl = document.getElementById('fox');
   const foxLine = document.getElementById('foxLine');
