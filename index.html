@@ -1032,6 +1032,8 @@ function updateDisplay(){
     if(timerState.remaining <= 0){
       // session finished
       if(timerState.mode === 'work'){
+           playSound('focusEndSound');  // <— here
+
         timerState.sessionCount++;
         // choose long every 4 sessions
         if(timerState.sessionCount % 4 === 0){
@@ -1041,6 +1043,7 @@ function updateDisplay(){
         }
       } else {
         // break finished -> back to work
+        playSound('breakEndSound'); 
         setMode('work');
       }
       updateDisplay();
