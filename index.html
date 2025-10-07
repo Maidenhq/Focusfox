@@ -593,6 +593,19 @@ toggle.addEventListener('change', () => {
 // On load:
 toggle.checked = localStorage.getItem('soundEnabled') === "1";
 
+ let audioUnlocked = false;
+function unlockAudio() {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  document.querySelectorAll('audio').forEach(a => {
+    try {
+      a.play().then(() => { 
+        a.pause(); 
+        a.currentTime = 0; 
+      }).catch(()=>{});
+    } catch(e){}
+  });
+}
  
   /* ---------- DOM refs ---------- */
   const foxEl = document.getElementById('fox');
@@ -646,6 +659,10 @@ const longInput = document.getElementById('longInput');
     }
   };
 
+
+
+
+ 
   /* ---------- tiny helpers ---------- */
  function setFox(img){
   const all = foxEl.querySelectorAll("img");
@@ -1164,6 +1181,7 @@ longInput.addEventListener('change', (e)=> { applyNewDuration('long', e.target.v
 
   /* ---------- wire UI actions ---------- */
   mainAction.addEventListener('click', ()=> {
+     unlockAudio();     // <- FIRST: give browser the required user gesture
     startPause();
   });
   skipBtn.addEventListener('click', ()=> {
