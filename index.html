@@ -464,6 +464,9 @@ body{
 </style>
 </head>
 <body>
+ <audio id="focusEndSound" src="assets/sounds/end_sound.mp3" preload="auto"></audio>
+<audio id="breakEndSound" src="assets/sounds/end_sound.mp3" preload="auto"></audio>
+<audio id="longBreakEndSound" src="assets/sounds/end_sound.mp3" preload="auto"></audio>
   <div class="card" role="application" aria-label="MaidenHQ Focus Timer">
   <div style="text-align:center">
       <div class="h-title">Pomodoro Timer</div>
@@ -565,6 +568,26 @@ function updateCompactMode(){
 window.addEventListener('resize', updateCompactMode);
 updateCompactMode(); // run once on load
 
+function playSound(soundId) {
+  const toggle = document.getElementById('soundToggle');
+  if (!toggle || !toggle.checked) return; // only play if enabled
+
+  const audio = document.getElementById(soundId);
+  if (!audio) return;
+
+  audio.currentTime = 0; // reset in case it was already playing
+  audio.play().catch(err => {
+    console.warn("Sound blocked until user interacts:", err);
+  });
+}
+
+ const toggle = document.getElementById('soundToggle');
+toggle.addEventListener('change', () => {
+  localStorage.setItem('soundEnabled', toggle.checked ? "1" : "0");
+});
+
+// On load:
+toggle.checked = localStorage.getItem('soundEnabled') === "1";
 
  
   /* ---------- DOM refs ---------- */
