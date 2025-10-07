@@ -1181,7 +1181,11 @@ longInput.addEventListener('change', (e)=> { applyNewDuration('long', e.target.v
 
   /* ---------- wire UI actions ---------- */
   mainAction.addEventListener('click', ()=> {
-     unlockAudio();     // <- FIRST: give browser the required user gesture
+      document.querySelectorAll('audio').forEach(a => {
+    try {
+      a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(()=>{});
+    } catch(e){}
+  });
     startPause();
   });
   skipBtn.addEventListener('click', ()=> {
